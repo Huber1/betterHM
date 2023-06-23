@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:better_hm/home/dashboard/mvg/departure.dart';
 import 'package:better_hm/shared/exceptions/api/api_exception.dart';
 import 'package:better_hm/shared/logger/logger.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 /// API for MVG
 /// example shows all departures from Lothstraße
@@ -64,7 +66,9 @@ const lineIdsLothstr = [
 
 class ApiMvg {
   static const baseUrl = "www.mvv-muenchen.de";
+  static const symbolUrl = "https://www.mvv-muenchen.de/fileadmin/lines";
   static const loggerTag = "mvg service";
+  final logger = Logger(loggerTag);
 
   Future<List<Departure>> getDepartures({
     http.Client? client,
@@ -72,7 +76,6 @@ class ApiMvg {
     required List<String> lineIds,
   }) async {
     assert(lineIds.isNotEmpty, "Specify at least one lineId");
-    final logger = Logger(loggerTag);
 
     logger.info("Fetching departures for stop $stopId");
 
@@ -111,4 +114,23 @@ class ApiMvg {
 
   List<Departure> parseDepartures(List<dynamic> departures) =>
       departures.map((e) => Departure.fromJson(e)).toList();
+
+  Future<File?> getSymbol(String name) async {
+    assert(name.endsWith(".svg"));
+
+    final docDir = await getApplicationDocumentsDirectory();
+    final dir = Directory("${docDir.path}/mvg_symbols");
+    if (!await dir.exists()) {
+      await dir.create();
+    }
+
+    final file = File("${dir.path}/$name");
+
+    if (await file.exists()) {
+      return file;
+    }
+
+    // file does not exist. fetch
+    logger.info("Symbol not stored locally. Fetching...");
+  }
 }

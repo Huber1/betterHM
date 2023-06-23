@@ -3,8 +3,10 @@ import 'dart:ui';
 
 import 'package:better_hm/home/dashboard/dashboard_card.dart';
 import 'package:better_hm/home/dashboard/mvg/departure.dart';
+import 'package:better_hm/home/dashboard/mvg/service/api_mvg.dart';
 import 'package:better_hm/shared/extensions/extensions_date_time.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 // https://stackoverflow.com/questions/53128438/android-onresume-method-equivalent-in-flutter
 class NextDepartures extends StatefulWidget {
@@ -42,7 +44,10 @@ class _NextDeparturesState extends State<NextDepartures> {
           final departure = items[index];
           return ListTile(
             key: ValueKey(departure),
-            leading: Text(departure.line.number),
+            leading: departure.line.symbol == null
+                ? Text(departure.line.number)
+                : SvgPicture.network(
+                    "${ApiMvg.symbolUrl}/${departure.line.symbol}"),
             title: Text(departure.direction),
             contentPadding: EdgeInsets.zero,
             dense: false,
