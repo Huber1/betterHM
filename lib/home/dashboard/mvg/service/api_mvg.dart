@@ -115,7 +115,7 @@ class ApiMvg {
   List<Departure> parseDepartures(List<dynamic> departures) =>
       departures.map((e) => Departure.fromJson(e)).toList();
 
-  Future<File?> getSymbol(String name) async {
+  Future<File?> getSymbol(String name, {http.Client? client}) async {
     assert(name.endsWith(".svg"));
 
     final docDir = await getApplicationDocumentsDirectory();
@@ -132,5 +132,14 @@ class ApiMvg {
 
     // file does not exist. fetch
     logger.info("Symbol not stored locally. Fetching...");
+    client ??= http.Client();
+
+    final res = await client.get(Uri.parse("${ApiMvg.symbolUrl}/$name"));
+    if (200 == res.statusCode) {
+      await file.writeAsBytes(res.bodyBytes);
+      return file;
+    }
+    logger.error("Failed to fetch Line Icon", "${res.statusCode}: ${res.body}");
+    return null;
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:better_hm/home/dashboard/dashboard_card.dart';
@@ -45,9 +46,31 @@ class _NextDeparturesState extends State<NextDepartures> {
           return ListTile(
             key: ValueKey(departure),
             leading: departure.line.symbol == null
-                ? Text(departure.line.number)
-                : SvgPicture.network(
-                    "${ApiMvg.symbolUrl}/${departure.line.symbol}"),
+                ? Container(
+                    alignment: Alignment.center,
+                    width: 35,
+                    child: Text(departure.line.number),
+                  )
+                : FutureBuilder<File?>(
+                    future: ApiMvg().getSymbol(departure.line.symbol!),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return Container(
+                          alignment: Alignment.center,
+                          width: 35,
+                          child: Text(departure.line.number),
+                        );
+                      }
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: SvgPicture.file(
+                          snapshot.data!,
+                          width: 35,
+                          alignment: Alignment.center,
+                        ),
+                      );
+                    },
+                  ),
             title: Text(departure.direction),
             contentPadding: EdgeInsets.zero,
             dense: false,
